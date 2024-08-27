@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Variables
+SOURCE_DIR="/path/to/source"
+BACKUP_DIR="/path/to/backup"
+REMOTE_SERVER="user@remote-server:/path/to/remote/backup"
+LOGFILE="/var/log/backup.log"
+
+# Create a backup
+tar -czf ${BACKUP_DIR}/backup_$(date +%Y%m%d_%H%M%S).tar.gz -C ${SOURCE_DIR} .
+
+# Sync to remote server
+rsync -avz ${BACKUP_DIR} ${REMOTE_SERVER}
+
+# Log the backup status
+if [ $? -eq 0 ]; then
+    echo "$(date +%Y-%m-%d_%H:%M:%S) Backup successful" >> ${LOGFILE}
+else
+    echo "$(date +%Y-%m-%d_%H:%M:%S) Backup failed" >> ${LOGFILE}
+fi
