@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Thresholds
+CPU_THRESHOLD=80
+MEM_THRESHOLD=80
+DISK_THRESHOLD=80
+
+# Log file
+LOGFILE="/var/log/system_health.log"
+
+# Check CPU usage
+CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')
+if (( $(echo "$CPU_USAGE > $CPU_THRESHOLD" | bc -l) )); then
+    echo "High CPU usage: $CPU_USAGE%" | tee -a $LOGFILE
+fi
+
+# Check Memory usage
+MEM_USAGE=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
+if (( $(echo "$MEM_USAGE > $MEM_THRESHOLD" | bc -l) )); then
+    echo "High Memory usage: $MEM_USAGE%" | tee -a $LOGFILE
+fi
+
+# Check Disk space usage
+DISK_USAGE=$(df / | grep / | awk '{print $5}' | sed 's/%//g')
+if [ $DISK_USAGE -gt $DISK_THRESHOLD ]; then
+    echo "Low Disk space: $DISK_USAGE%" | tee -a $LOGFILE
+fi
+
+# Check Running processes
+PROCESS_COUNT=$(ps -ef | wc -l)
+echo "Total running processes: $PROCESS_COUNT" | tee -a $LOGFILE
